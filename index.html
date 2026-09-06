@@ -172,23 +172,23 @@
             </button>
           </div>
 
-          <div class="overflow-x-auto rounded-2xl border border-slate-100 shadow-sm">
-            <table class="w-full text-left text-xs md:text-sm border-collapse">
-              <thead>
-                <tr class="bg-slate-50 text-slate-600 border-b border-slate-100">
-                  <th class="p-3.5 font-extrabold w-10">STT</th>
-                  <th class="p-3.5 font-extrabold w-16">Loại</th>
-                  <th class="p-3.5 font-extrabold w-28">Số Tiền</th>
-                  <th class="p-3.5 font-extrabold w-20">Giờ</th>
-                  <th class="p-3.5 font-extrabold w-28">Ngày</th>
-                  <th class="p-3.5 font-extrabold">Nội Dung Chi Tiết</th>
-                  <th class="p-3.5 font-extrabold text-center w-16">Thao tác</th>
-                </tr>
-              </thead>
-              <tbody id="paymentTable" class="divide-y divide-slate-100">
-                <tr><td colspan="7" class="p-8 text-center text-slate-400">Đang khởi tạo cơ sở dữ liệu...</td></tr>
-              </tbody>
-            </table>
+          <!-- Bảng thiết kế bằng chuẩn CSS Grid chống vỡ cột -->
+          <div class="rounded-2xl border border-slate-200 overflow-hidden shadow-sm bg-white">
+            <!-- Header Bảng -->
+            <div class="grid grid-cols-12 bg-slate-100 text-slate-700 font-extrabold text-xs py-3 px-3 border-b border-slate-200 tracking-wide text-center">
+              <div class="col-span-1">STT</div>
+              <div class="col-span-1">Loại</div>
+              <div class="col-span-2 text-left pl-1">Số Tiền</div>
+              <div class="col-span-1">Giờ</div>
+              <div class="col-span-2">Ngày</div>
+              <div class="col-span-4 text-left">Nội Dung Chi Tiết</div>
+              <div class="col-span-1">Sửa/Xóa</div>
+            </div>
+
+            <!-- Nội dung danh sách giao dịch -->
+            <div id="paymentTable" class="divide-y divide-slate-100 text-xs">
+              <div class="p-8 text-center text-slate-400">Đang khởi tạo cơ sở dữ liệu...</div>
+            </div>
           </div>
         </div>
 
@@ -223,13 +223,11 @@
       let timeStr = getCurrentTime();
       let dateStr = getCurrentDate();
 
-      // Bắt định dạng giờ (VD: 14:35:20 hoặc 14:35)
       const timeMatch = text.match(/([0-1]?[0-9]|2[0-3])[:h]([0-5][0-9])(?:[:h]([0-5][0-9]))?/i);
       if (timeMatch) {
         timeStr = `${timeMatch[1].padStart(2, '0')}:${timeMatch[2].padStart(2, '0')}`;
       }
 
-      // Bắt định dạng ngày (VD: 06/09/2026, 06-09-2026, 6 tháng 9 2026, v.v.)
       const dateMatch = text.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
       if (dateMatch) {
         let d = dateMatch[1].padStart(2, '0');
@@ -243,7 +241,7 @@
     }
 
     function initIndexedDB() {
-      const request = indexedDB.open("ThanhTamHieuDB_v9", 1);
+      const request = indexedDB.open("ThanhTamHieuDB_v10", 1);
       request.onupgradeneeded = (e) => {
         db = e.target.result;
         if (!db.objectStoreNames.contains("payments")) {
@@ -366,7 +364,7 @@
         let sumThu = 0, sumChi = 0;
 
         if (data.length === 0) {
-          tableBody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400">Chưa có giao dịch nào.</td></tr>`;
+          tableBody.innerHTML = `<div class="p-8 text-center text-slate-400">Chưa có giao dịch nào.</div>`;
           document.getElementById('totalIncome').innerText = '0 VNĐ';
           document.getElementById('totalExpense').innerText = '0 VNĐ';
           document.getElementById('netBalance').innerText = '0 VNĐ';
@@ -381,68 +379,70 @@
           const badgeClass = isThu ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800';
           const priceClass = isThu ? 'text-emerald-600' : 'text-rose-600';
           const textContent = row.raw_text || 'Trống...';
-          const isLongText = textContent.length > 70;
-          const shortText = isLongText ? textContent.substring(0, 70) + '...' : textContent;
+          const isLongText = textContent.length > 60;
+          const shortText = isLongText ? textContent.substring(0, 60) + '...' : textContent;
 
           return `
-            <tr class="hover:bg-slate-50 transition align-top border-b border-slate-100">
-              <td class="p-3.5 font-bold text-slate-400">#${data.length - idx}</td>
-              
-              <!-- Chế độ xem -->
-              <td colspan="5" class="p-0">
-                <div id="display-row-${row.id}" class="grid grid-cols-12 items-center w-full">
-                  <div class="col-span-2 p-3.5"><span class="px-2.5 py-1 rounded-lg text-[11px] font-extrabold ${badgeClass}">${isThu ? 'Thu' : 'Chi'}</span></div>
-                  <div class="col-span-3 p-3.5 font-bold ${priceClass} whitespace-nowrap">${row.amount}</div>
-                  <div class="col-span-2 p-3.5 text-slate-600 text-xs">${row.timeStr}</div>
-                  <div class="col-span-2 p-3.5 text-slate-600 text-xs">${row.dateStr}</div>
-                  <div class="col-span-3 p-3.5 text-slate-700 text-xs">
-                    <div id="short-text-${row.id}" class="break-words">${shortText}</div>
-                    <div id="full-text-${row.id}" class="hidden break-words whitespace-pre-line">${textContent}</div>
-                    ${isLongText ? `<button type="button" onclick="toggleExpand(${row.id})" id="btn-expand-${row.id}" class="text-cyan-600 font-bold hover:underline mt-1 text-[11px] block">Xem thêm ▼</button>` : ''}
-                  </div>
+            <div class="hover:bg-slate-50 transition border-b border-slate-100 last:border-none">
+              <!-- Chế độ xem hàng chuẩn Grid -->
+              <div id="display-row-${row.id}" class="grid grid-cols-12 items-center py-3 px-3 text-xs gap-y-1">
+                <div class="col-span-1 font-bold text-slate-400 text-center">#${data.length - idx}</div>
+                
+                <div class="col-span-1 text-center">
+                  <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold ${badgeClass}">${isThu ? 'Thu' : 'Chi'}</span>
+                </div>
+                
+                <div class="col-span-2 font-bold ${priceClass} pl-1 truncate">${row.amount}</div>
+                
+                <div class="col-span-1 text-slate-600 text-center font-medium">${row.timeStr}</div>
+                
+                <div class="col-span-2 text-slate-600 text-center font-medium">${row.dateStr}</div>
+                
+                <div class="col-span-4 text-slate-700 pr-2">
+                  <div id="short-text-${row.id}" class="break-words">${shortText}</div>
+                  <div id="full-text-${row.id}" class="hidden break-words whitespace-pre-line">${textContent}</div>
+                  ${isLongText ? `<button type="button" onclick="toggleExpand(${row.id})" id="btn-expand-${row.id}" class="text-cyan-600 font-bold hover:underline mt-0.5 text-[10px] block">Xem thêm ▼</button>` : ''}
                 </div>
 
-                <!-- Chế độ sửa -->
-                <div id="edit-row-${row.id}" class="hidden p-3.5 bg-cyan-50/50 space-y-3 rounded-xl border border-cyan-200 my-1">
-                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <div>
-                      <label class="text-[10px] font-bold text-slate-400 uppercase">Loại</label>
-                      <select id="edit-type-${row.id}" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-bold">
-                        <option value="THU" ${isThu ? 'selected' : ''}>Thu Vào</option>
-                        <option value="CHI" ${!isThu ? 'selected' : ''}>Chi Ra</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label class="text-[10px] font-bold text-slate-400 uppercase">Số Tiền</label>
-                      <input type="text" id="edit-amount-${row.id}" value="${row.amount}" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-bold">
-                    </div>
-                    <div>
-                      <label class="text-[10px] font-bold text-slate-400 uppercase">Giờ</label>
-                      <input type="text" id="edit-time-${row.id}" value="${row.timeStr}" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs">
-                    </div>
-                    <div>
-                      <label class="text-[10px] font-bold text-slate-400 uppercase">Ngày</label>
-                      <input type="text" id="edit-date-${row.id}" value="${row.dateStr}" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs">
-                    </div>
+                <div class="col-span-1 flex items-center justify-center gap-1">
+                  <button type="button" onclick="enableEdit(${row.id})" class="w-6 h-6 rounded bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center text-[11px]" title="Sửa">✏️</button>
+                  <button type="button" onclick="deleteRecord(${row.id})" class="w-6 h-6 rounded bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center text-[11px]" title="Xóa">✕</button>
+                </div>
+              </div>
+
+              <!-- Chế độ sửa -->
+              <div id="edit-row-${row.id}" class="hidden p-3.5 bg-cyan-50/70 space-y-3 border border-cyan-200 m-2 rounded-xl">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Loại</label>
+                    <select id="edit-type-${row.id}" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-bold">
+                      <option value="THU" ${isThu ? 'selected' : ''}>Thu Vào</option>
+                      <option value="CHI" ${!isThu ? 'selected' : ''}>Chi Ra</option>
+                    </select>
                   </div>
                   <div>
-                    <label class="text-[10px] font-bold text-slate-400 uppercase">Nội dung chi tiết / Raw Text</label>
-                    <textarea id="edit-text-${row.id}" rows="3" class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-xs">${row.raw_text || ''}</textarea>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Số Tiền</label>
+                    <input type="text" id="edit-amount-${row.id}" value="${row.amount}" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-bold">
                   </div>
-                  <div class="flex gap-2 justify-end">
-                    <button type="button" onclick="saveEdit(${row.id})" class="bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow">💾 Lưu Thay Đổi</button>
-                    <button type="button" onclick="cancelEdit(${row.id})" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-lg">Hủy</button>
+                  <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Giờ</label>
+                    <input type="text" id="edit-time-${row.id}" value="${row.timeStr}" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs">
+                  </div>
+                  <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Ngày</label>
+                    <input type="text" id="edit-date-${row.id}" value="${row.dateStr}" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs">
                   </div>
                 </div>
-              </td>
-
-              <td class="p-3.5 text-center whitespace-nowrap">
-                <div class="flex items-center justify-center gap-1">
-                  <button type="button" onclick="enableEdit(${row.id})" class="w-7 h-7 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold flex items-center justify-center text-xs" title="Sửa">✏️</button>
-                  <button type="button" onclick="deleteRecord(${row.id})" class="w-7 h-7 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold flex items-center justify-center text-xs" title="Xóa">✕</button>
+                <div>
+                  <label class="text-[10px] font-bold text-slate-400 uppercase">Nội dung chi tiết</label>
+                  <textarea id="edit-text-${row.id}" rows="2" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs">${row.raw_text || ''}</textarea>
                 </div>
-              </td>
-            </tr>
+                <div class="flex gap-2 justify-end">
+                  <button type="button" onclick="saveEdit(${row.id})" class="bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow">💾 Lưu Thay Đổi</button>
+                  <button type="button" onclick="cancelEdit(${row.id})" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-lg">Hủy</button>
+                </div>
+              </div>
+            </div>
           `;
         }).join('');
 
@@ -456,7 +456,6 @@
     document.addEventListener('DOMContentLoaded', () => {
       initIndexedDB();
 
-      // Thêm thủ công
       const manualSubmitBtn = document.getElementById('manualSubmitBtn');
       if (manualSubmitBtn) {
         manualSubmitBtn.addEventListener('click', async () => {
@@ -523,7 +522,6 @@
         document.getElementById('billInputCamera').value = '';
       });
 
-      // Gửi form quét bill AI
       document.getElementById('uploadForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!selectedFile) {
@@ -555,7 +553,6 @@
           const res = await response.json();
           const parsedText = res.ParsedResults?.[0]?.ParsedText || "";
           
-          // Trích xuất số tiền
           let numVal = 0;
           let amountStr = "Chưa rõ";
           const match = parsedText.match(/([\d\.,]{4,15})\s*(?:vnd|vnđ|đ|d)/i);
@@ -564,7 +561,6 @@
             amountStr = numVal.toLocaleString('vi-VN') + ' VNĐ';
           }
 
-          // Tự động bóc tách ngày giờ chuẩn từ nội dung bill
           const { timeStr, dateStr } = extractDateTimeFromText(parsedText);
 
           await savePayment(scanType, amountStr, numVal, timeStr, dateStr, parsedText.replace(/\s+/g, ' ').trim() || "Quét bill AI");
@@ -584,7 +580,6 @@
         }
       });
 
-      // Xuất Excel
       document.getElementById('exportBtn').addEventListener('click', () => {
         if (!db) return;
         const tx = db.transaction("payments", "readonly");

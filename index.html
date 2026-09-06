@@ -157,7 +157,7 @@
 
       </div>
 
-      <!-- Bảng Lịch Sử Thanh Toán -->
+      <!-- Bảng Lịch Sử Thanh Toán (Đổi sang dạng Card View siêu gọn gàng trên mobile) -->
       <div class="lg:col-span-2 bg-white p-6 rounded-3xl shadow-xl border border-slate-100 flex flex-col justify-between">
         <div>
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
@@ -165,30 +165,16 @@
               <h2 class="text-base font-extrabold text-slate-800 flex items-center gap-2">
                 <span class="p-2 bg-cyan-50 text-cyan-600 rounded-xl">📋</span> <span>Sổ Nhật Ký Thu Chi</span>
               </h2>
-              <p class="text-xs text-slate-400 mt-0.5">Bấm nút Sửa để thay đổi thông tin chi tiết hoặc ngày giờ giao dịch</p>
+              <p class="text-xs text-slate-400 mt-0.5">Danh sách các giao dịch thu chi và quét bill tự động</p>
             </div>
             <button type="button" id="exportBtn" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-lg flex items-center gap-2">
               📊 Xuất File Excel (.XLSX)
             </button>
           </div>
 
-          <!-- Bảng thiết kế bằng chuẩn CSS Grid chống vỡ cột -->
-          <div class="rounded-2xl border border-slate-200 overflow-hidden shadow-sm bg-white">
-            <!-- Header Bảng -->
-            <div class="grid grid-cols-12 bg-slate-100 text-slate-700 font-extrabold text-xs py-3 px-3 border-b border-slate-200 tracking-wide text-center">
-              <div class="col-span-1">STT</div>
-              <div class="col-span-1">Loại</div>
-              <div class="col-span-2 text-left pl-1">Số Tiền</div>
-              <div class="col-span-1">Giờ</div>
-              <div class="col-span-2">Ngày</div>
-              <div class="col-span-4 text-left">Nội Dung Chi Tiết</div>
-              <div class="col-span-1">Sửa/Xóa</div>
-            </div>
-
-            <!-- Nội dung danh sách giao dịch -->
-            <div id="paymentTable" class="divide-y divide-slate-100 text-xs">
-              <div class="p-8 text-center text-slate-400">Đang khởi tạo cơ sở dữ liệu...</div>
-            </div>
+          <!-- Danh sách Card giao dịch -->
+          <div id="paymentTable" class="space-y-3">
+            <div class="p-8 text-center text-slate-400 text-xs">Đang khởi tạo cơ sở dữ liệu...</div>
           </div>
         </div>
 
@@ -218,7 +204,6 @@
       return `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
     }
 
-    // Hàm tự động trích xuất ngày tháng và giờ từ văn bản OCR của bill
     function extractDateTimeFromText(text) {
       let timeStr = getCurrentTime();
       let dateStr = getCurrentDate();
@@ -241,7 +226,7 @@
     }
 
     function initIndexedDB() {
-      const request = indexedDB.open("ThanhTamHieuDB_v10", 1);
+      const request = indexedDB.open("ThanhTamHieuDB_v11", 1);
       request.onupgradeneeded = (e) => {
         db = e.target.result;
         if (!db.objectStoreNames.contains("payments")) {
@@ -283,13 +268,13 @@
     };
 
     window.enableEdit = function(id) {
-      document.getElementById(`display-row-${id}`).classList.add('hidden');
-      document.getElementById(`edit-row-${id}`).classList.remove('hidden');
+      document.getElementById(`display-card-${id}`).classList.add('hidden');
+      document.getElementById(`edit-card-${id}`).classList.remove('hidden');
     };
 
     window.cancelEdit = function(id) {
-      document.getElementById(`edit-row-${id}`).classList.add('hidden');
-      document.getElementById(`display-row-${id}`).classList.remove('hidden');
+      document.getElementById(`edit-card-${id}`).classList.add('hidden');
+      document.getElementById(`display-card-${id}`).classList.remove('hidden');
     };
 
     window.saveEdit = function(id) {
@@ -364,7 +349,7 @@
         let sumThu = 0, sumChi = 0;
 
         if (data.length === 0) {
-          tableBody.innerHTML = `<div class="p-8 text-center text-slate-400">Chưa có giao dịch nào.</div>`;
+          tableBody.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">Chưa có giao dịch nào.</div>`;
           document.getElementById('totalIncome').innerText = '0 VNĐ';
           document.getElementById('totalExpense').innerText = '0 VNĐ';
           document.getElementById('netBalance').innerText = '0 VNĐ';
@@ -379,69 +364,70 @@
           const badgeClass = isThu ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800';
           const priceClass = isThu ? 'text-emerald-600' : 'text-rose-600';
           const textContent = row.raw_text || 'Trống...';
-          const isLongText = textContent.length > 60;
-          const shortText = isLongText ? textContent.substring(0, 60) + '...' : textContent;
+          const isLongText = textContent.length > 80;
+          const shortText = isLongText ? textContent.substring(0, 80) + '...' : textContent;
 
           return `
-            <div class="hover:bg-slate-50 transition border-b border-slate-100 last:border-none">
-              <!-- Chế độ xem hàng chuẩn Grid -->
-              <div id="display-row-${row.id}" class="grid grid-cols-12 items-center py-3 px-3 text-xs gap-y-1">
-                <div class="col-span-1 font-bold text-slate-400 text-center">#${data.length - idx}</div>
-                
-                <div class="col-span-1 text-center">
-                  <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold ${badgeClass}">${isThu ? 'Thu' : 'Chi'}</span>
-                </div>
-                
-                <div class="col-span-2 font-bold ${priceClass} pl-1 truncate">${row.amount}</div>
-                
-                <div class="col-span-1 text-slate-600 text-center font-medium">${row.timeStr}</div>
-                
-                <div class="col-span-2 text-slate-600 text-center font-medium">${row.dateStr}</div>
-                
-                <div class="col-span-4 text-slate-700 pr-2">
-                  <div id="short-text-${row.id}" class="break-words">${shortText}</div>
-                  <div id="full-text-${row.id}" class="hidden break-words whitespace-pre-line">${textContent}</div>
-                  ${isLongText ? `<button type="button" onclick="toggleExpand(${row.id})" id="btn-expand-${row.id}" class="text-cyan-600 font-bold hover:underline mt-0.5 text-[10px] block">Xem thêm ▼</button>` : ''}
+            <div class="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 transition shadow-sm space-y-3">
+              
+              <!-- Chế độ xem Card -->
+              <div id="display-card-${row.id}" class="space-y-2">
+                <div class="flex justify-between items-center">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-extrabold text-slate-400">#${data.length - idx}</span>
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-black ${badgeClass}">${isThu ? '🟢 THU VÀO' : '🔴 CHI RA'}</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-xs font-semibold text-slate-500 bg-white px-2 py-1 rounded-lg border border-slate-200">⏰ ${row.timeStr} - ${row.dateStr}</span>
+                    <button type="button" onclick="enableEdit(${row.id})" class="w-7 h-7 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-700 flex items-center justify-center text-xs font-bold" title="Sửa">✏️</button>
+                    <button type="button" onclick="deleteRecord(${row.id})" class="w-7 h-7 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-700 flex items-center justify-center text-xs font-bold" title="Xóa">✕</button>
+                  </div>
                 </div>
 
-                <div class="col-span-1 flex items-center justify-center gap-1">
-                  <button type="button" onclick="enableEdit(${row.id})" class="w-6 h-6 rounded bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center text-[11px]" title="Sửa">✏️</button>
-                  <button type="button" onclick="deleteRecord(${row.id})" class="w-6 h-6 rounded bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center text-[11px]" title="Xóa">✕</button>
+                <div class="text-base font-black ${priceClass}">
+                  ${row.amount}
+                </div>
+
+                <div class="text-xs text-slate-700 bg-white p-3 rounded-xl border border-slate-200/60 leading-relaxed">
+                  <div id="short-text-${row.id}" class="break-words">${shortText}</div>
+                  <div id="full-text-${row.id}" class="hidden break-words whitespace-pre-line">${textContent}</div>
+                  ${isLongText ? `<button type="button" onclick="toggleExpand(${row.id})" id="btn-expand-${row.id}" class="text-cyan-600 font-bold hover:underline mt-1 text-[11px] block">Xem thêm ▼</button>` : ''}
                 </div>
               </div>
 
-              <!-- Chế độ sửa -->
-              <div id="edit-row-${row.id}" class="hidden p-3.5 bg-cyan-50/70 space-y-3 border border-cyan-200 m-2 rounded-xl">
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <!-- Chế độ sửa Card -->
+              <div id="edit-card-${row.id}" class="hidden bg-white p-3.5 space-y-3 border border-cyan-300 rounded-xl shadow-inner">
+                <div class="grid grid-cols-2 gap-2">
                   <div>
-                    <label class="text-[10px] font-bold text-slate-400 uppercase">Loại</label>
-                    <select id="edit-type-${row.id}" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-bold">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Loại Giao Dịch</label>
+                    <select id="edit-type-${row.id}" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold">
                       <option value="THU" ${isThu ? 'selected' : ''}>Thu Vào</option>
                       <option value="CHI" ${!isThu ? 'selected' : ''}>Chi Ra</option>
                     </select>
                   </div>
                   <div>
                     <label class="text-[10px] font-bold text-slate-400 uppercase">Số Tiền</label>
-                    <input type="text" id="edit-amount-${row.id}" value="${row.amount}" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-bold">
+                    <input type="text" id="edit-amount-${row.id}" value="${row.amount}" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold">
                   </div>
                   <div>
                     <label class="text-[10px] font-bold text-slate-400 uppercase">Giờ</label>
-                    <input type="text" id="edit-time-${row.id}" value="${row.timeStr}" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs">
+                    <input type="text" id="edit-time-${row.id}" value="${row.timeStr}" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs">
                   </div>
                   <div>
                     <label class="text-[10px] font-bold text-slate-400 uppercase">Ngày</label>
-                    <input type="text" id="edit-date-${row.id}" value="${row.dateStr}" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs">
+                    <input type="text" id="edit-date-${row.id}" value="${row.dateStr}" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs">
                   </div>
                 </div>
                 <div>
                   <label class="text-[10px] font-bold text-slate-400 uppercase">Nội dung chi tiết</label>
-                  <textarea id="edit-text-${row.id}" rows="2" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs">${row.raw_text || ''}</textarea>
+                  <textarea id="edit-text-${row.id}" rows="2" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs">${row.raw_text || ''}</textarea>
                 </div>
                 <div class="flex gap-2 justify-end">
                   <button type="button" onclick="saveEdit(${row.id})" class="bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow">💾 Lưu Thay Đổi</button>
                   <button type="button" onclick="cancelEdit(${row.id})" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-lg">Hủy</button>
                 </div>
               </div>
+
             </div>
           `;
         }).join('');

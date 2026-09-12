@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Báo Giá Vật Tư & Dịch Vụ - Cơ Điện Lạnh Thanh Tâm Hiếu</title>
+    <style>
+        :root {
+            --brand-blue: #0b497f;
+            --brand-dark-blue: #08345c;
+            --border-green: #2e7d32;
+            --border-light-green: #81c784;
+            --header-red: #c62828;
+            --category-cyan: #00838f;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Times New Roman', Times, serif, Arial; }
+        body { background-color: #37474f; padding: 10px; color: #212121; }
+
+        /* ẨN NÚT POWERED BY NETLIFY */
+        #netlify-identity-widget,
+        [data-netlify-deploy-id],
+        iframe[src*="netlify"],
+        .netlify-badge,
+        div[class*="netlify"],
+        button[class*="netlify"],
+        div[style*="position: fixed"][style*="bottom"] {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        /* Toolbar điều khiển */
+        .toolbar {
+            max-width: 900px;
+            margin: 0 auto 12px auto;
+            background: #263238;
+            padding: 10px 15px;
+            border-radius: 6px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: space-between;
+            align-items: center;
+            color: #fff;
+        }
+        .toolbar-title { font-size: 14px; font-weight: bold; color: #80cbd4; }
+        .toolbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        /* Khung Báo Giá Chính */
+        .quote-card {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 20px 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .header, .doc-title, .info-grid, .table-container, 
+        .total-box, .terms-box, .bottom-grid {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Đầu trang & Logo */
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 2px solid var(--brand-blue); 
+            padding-bottom: 10px; 
+            margin-bottom: 12px; 
+            gap: 10px;
+        }
+        .company-logo-svg { 
+            width: 150px; 
+            height: auto; 
+            flex-shrink: 0;
+        }
+        .company-info { text-align: right; }
+        .company-info h2 { color: var(--brand-blue); font-size: 16px; font-weight: bold; text-transform: uppercase; margin-bottom: 2px; }
+        .company-info p { font-size: 12px; color: #37474f; line-height: 1.3; }
+
+        .doc-title { text-align: center; margin: 10px 0; color: var(--header-red); text-transform: uppercase; font-size: 18px; font-weight: bold; }
+
+        /* Thông tin khách hàng */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            background: rgba(249, 251, 231, 0.85);
+            border: 1px solid var(--border-light-green);
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+        }
+        .info-group label { font-size: 11px; font-weight: bold; color: var(--border-green); display: block; margin-bottom: 2px; }
+        .info-group input { width: 100%; padding: 5px 8px; border: 1px solid #a5d6a7; border-radius: 3px; font-size: 12px; outline: none; background: #fff; }
+
+        /* Bảng giá */
+        .table-container { width: 100%; margin-bottom: 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table { min-width: 650px; width: 100%; border-collapse: collapse; border: 2px double var(--border-green); background: rgba(255, 255, 255, 0.9); }
+        th, td { border: 1px solid var(--border-light-green); padding: 5px 4px; font-size: 12px; vertical-align: middle; }
+        th { color: var(--header-red); font-weight: bold; text-align: center; font-size: 12px; background-color: rgba(241, 248, 233, 0.95); }
+        
+        .category-row { background-color: rgba(224, 247, 250, 0.9); color: var(--category-cyan); font-weight: bold; text-align: center; font-size: 12px; text-transform: uppercase; }
+        td input { width: 100%; border: none; outline: none; background: transparent; font-size: 12px; font-family: inherit; }
+
+        .center { text-align: center; }
+        .right { text-align: right; }
+        .bold { font-weight: bold; }
+
+        .total-box { width: 280px; margin-left: auto; margin-bottom: 12px; }
+        .total-row { display: flex; justify-content: space-between; padding: 6px 10px; font-weight: bold; font-size: 13px; color: var(--header-red); border: 2px double var(--border-green); background: rgba(255, 253, 231, 0.95); }
+
+        .terms-box { border: 1px solid var(--border-light-green); background: rgba(250, 250, 250, 0.9); padding: 8px 12px; border-radius: 4px; margin-bottom: 12px; }
+        .terms-title { font-size: 11px; font-weight: bold; color: var(--border-green); margin-bottom: 4px; text-transform: uppercase; }
+        .terms-content { font-size: 11.5px; line-height: 1.4; color: #333; }
+        .terms-content ul { padding-left: 18px; }
+
+        .bottom-grid { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+        .payment-info { width: 48%; border: 1px dashed var(--border-green); padding: 8px; border-radius: 4px; font-size: 11px; text-align: center; background: #fff; }
+        .payment-info h4 { color: var(--border-green); text-align: left; margin-bottom: 4px; font-size: 11px; border-bottom: 1px solid #e0e0e0; padding-bottom: 2px; }
+        .payment-info p { text-align: left; margin-bottom: 2px; }
+        .qr-img { width: 100px; height: auto; margin-top: 4px; border: 1px solid #e0e0e0; padding: 2px; }
+
+        .signature-box { width: 48%; text-align: center; font-size: 12px; }
+        .signature-space { height: 75px; } /* Đã tăng khoảng trống để ký tên thoải mái */
+
+        .btn { padding: 6px 12px; border: none; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer; white-space: nowrap; }
+        .btn-add { background: #2e7d32; color: #fff; margin-bottom: 10px; }
+        .btn-preview { background: #00838f; color: #fff; }
+        .btn-print { background: #1565c0; color: #fff; }
+        .btn-remove { background: #c62828; color: #fff; padding: 1px 5px; font-size: 10px; }
+        .btn-edit { background: #f57f17; color: #fff; }
+
+        .preview-bar { display: none; position: fixed; top: 10px; right: 10px; z-index: 10000; background: #1b5e20; padding: 8px 12px; border-radius: 6px; gap: 8px; }
+        body.preview-mode .hide-on-preview, body.preview-mode .toolbar { display: none !important; }
+        body.preview-mode .quote-card { pointer-events: none; }
+        body.preview-mode input { border: none !important; background: transparent !important; }
+        body.preview-mode .preview-bar { display: flex !important; }
+
+        /* TỐI ƯU DI ĐỘNG */
+        @media screen and (max-width: 600px) {
+            body { padding: 5px; }
+            .quote-card { padding: 12px; }
+            .header { flex-direction: column; text-align: center; }
+            .company-info { text-align: center; }
+            .company-logo-svg { margin: 0 auto; }
+            .info-grid { grid-template-columns: 1fr; }
+            .total-box { width: 100%; }
+            .bottom-grid { flex-direction: column; }
+            .payment-info, .signature-box { width: 100%; }
+            .signature-space { height: 50px; }
+            .toolbar { flex-direction: column; text-align: center; }
+            .toolbar-actions { width: 100%; justify-content: center; }
+        }
+
+        /* TỐI ƯU IN A4 */
+        @page { size: A4 portrait; margin: 6mm; }
+        @media print {
+            html, body { background: #fff; padding: 0; margin: 0; }
+            .toolbar, .preview-bar, .hide-on-preview, .btn-remove { display: none !important; }
+            .quote-card { box-shadow: none; padding: 0 !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; }
+            .header { padding-bottom: 4px; margin-bottom: 6px; flex-direction: row !important; text-align: right !important; }
+            .company-info { text-align: right !important; }
+            .company-logo-svg { width: 120px; }
+            .company-info h2 { font-size: 15px; }
+            .company-info p { font-size: 10px; }
+            .doc-title { font-size: 15px; margin: 4px 0; }
+            .info-grid { padding: 4px; margin-bottom: 6px; gap: 4px; grid-template-columns: 1fr 1fr !important; }
+            .info-group label { font-size: 10px; }
+            .info-group input { font-size: 10px; padding: 1px 3px; border: none !important; }
+            .table-container { margin-bottom: 6px; overflow: visible; }
+            table { min-width: 100% !important; border-width: 1px; }
+            th, td { padding: 2px 3px; font-size: 10px; }
+            td input { font-size: 10px; border: none !important; }
+            .total-box { margin-bottom: 6px; width: 230px; }
+            .total-row { padding: 3px 6px; font-size: 11px; }
+            .terms-box { padding: 4px 8px; margin-bottom: 6px; }
+            .terms-title { font-size: 10px; margin-bottom: 2px; }
+            .terms-content { font-size: 9.5px; line-height: 1.25; }
+            .bottom-grid { flex-direction: row !important; margin-top: 4px; }
+            .payment-info { width: 48% !important; padding: 4px; font-size: 9.5px; text-align: center !important; }
+            .payment-info h4 { font-size: 10px; margin-bottom: 1px; }
+            .payment-info p { margin-bottom: 1px; text-align: left !important; }
+            .qr-img { width: 75px; }
+            .signature-box { width: 48% !important; font-size: 10.5px; }
+            .signature-space { height: 65px; } /* Khoảng trống khi in ấn A4 */
+        }
+    </style>
+</head>
+<body>
+
+<div class="toolbar hide-on-preview">
+    <div class="toolbar-title">🌿 CƠ ĐIỆN LẠNH THANH TÂM HIẾU</div>
+    <div class="toolbar-actions">
+        <button class="btn btn-preview" onclick="togglePreview(true)">👁️ Xem trước</button>
+        <button class="btn btn-print" onclick="window.print()">🖨️ Xuất PDF / In</button>
+    </div>
+</div>
+
+<div class="preview-bar">
+    <button class="btn btn-edit" onclick="togglePreview(false)">✏️ Sửa</button>
+    <button class="btn btn-print" onclick="window.print()">🖨️ Xuất PDF</button>
+</div>
+
+<div class="quote-card">
+    <div class="header">
+        <div class="company-logo-svg">
+            <svg viewBox="0 0 300 290" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#115a99" />
+                        <stop offset="100%" stop-color="#062d52" />
+                    </linearGradient>
+                </defs>
+                <path d="M 50 15 L 250 15 L 250 115 C 250 185, 150 235, 150 235 C 150 235, 50 185, 50 115 Z" fill="none" stroke="url(#shieldGrad)" stroke-width="11" stroke-linejoin="round"/>
+                <path d="M 80 65 L 220 65 L 220 95 L 168 95 L 168 205 L 132 205 L 132 95 L 80 95 Z" fill="url(#shieldGrad)"/>
+                <path d="M 100 95 L 122 95 L 122 168 L 100 152 Z" fill="url(#shieldGrad)"/>
+                <path d="M 178 95 L 200 95 L 200 152 L 178 168 Z" fill="url(#shieldGrad)"/>
+                <text x="150" y="275" font-family="'Arial Black', Arial, sans-serif" font-weight="900" font-size="22" fill="#0b497f" text-anchor="middle" letter-spacing="0.5">THANH TAM HIEU</text>
+            </svg>
+        </div>
+        <div class="company-info">
+            <h2>CƠ ĐIỆN LẠNH THANH TÂM HIẾU</h2>
+            <p><strong>Địa chỉ:</strong> Hẻm 531, KP9, Phạm Văn Thuận, Tam Hiệp, Biên Hoà, Đồng Nai</p>
+            <p><strong>Điện thoại / Zalo:</strong> <strong>0961 751 705</strong></p>
+            <p><strong>Chuyên:</strong> Thi công ống đồng, lắp đặt, bảo trì & nạp gas điện lạnh</p>
+        </div>
+    </div>
+
+    <h1 class="doc-title">BẢNG BÁO GIÁ VẬT TƯ & NHÂN CÔNG</h1>
+
+    <div class="info-grid">
+        <div class="info-group">
+            <label>CHỦ ĐẦU TƯ / KHÁCH HÀNG:</label>
+            <input type="text" placeholder="Nhập tên khách hàng...">
+        </div>
+        <div class="info-group">
+            <label>NGÀY LẬP BÁO GIÁ:</label>
+            <input type="date" id="quote-date">
+        </div>
+        <div class="info-group">
+            <label>ĐỊA CHỈ CÔNG TRÌNH:</label>
+            <input type="text" placeholder="Nhập địa chỉ công trình...">
+        </div>
+        <div class="info-group">
+            <label>SỐ ĐIỆN THOẠI KH:</label>
+            <input type="tel" placeholder="Nhập số điện thoại...">
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table id="item-table">
+            <thead>
+                <tr>
+                    <th style="width: 32%;">CHỦNG LOẠI VẬT TƯ</th>
+                    <th style="width: 12%;">Xuất xứ</th>
+                    <th style="width: 7%;">ĐVT</th>
+                    <th style="width: 7%;">SL</th>
+                    <th style="width: 14%;">Đơn Giá</th>
+                    <th style="width: 13%;">Nhân Công</th>
+                    <th style="width: 15%;">Thành Tiền</th>
+                    <th class="hide-on-preview" style="width: 4%;">Xóa</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+            </tbody>
+        </table>
+    </div>
+
+    <div class="hide-on-preview" style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button class="btn btn-add" onclick="addRow()">+ Thêm vật tư</button>
+        <button class="btn btn-add" style="background: #00838f;" onclick="addCategoryRow()">+ Thêm nhóm</button>
+    </div>
+
+    <div class="total-box">
+        <div class="total-row">
+            <span>TỔNG CỘNG:</span>
+            <span id="grand-total">0 VNĐ</span>
+        </div>
+    </div>
+
+    <div class="terms-box">
+        <div class="terms-title">📌 ĐIỀU KHOẢN BÁO GIÁ</div>
+        <div class="terms-content" contenteditable="true">
+            <ul>
+                <li><strong>Hiệu lực:</strong> Báo giá có giá trị trong 15 ngày.</li>
+                <li><strong>Bảo hành:</strong> Vật tư bảo hành 12 tháng, dịch vụ bảo trì bảo hành 03 tháng.</li>
+                <li><strong>Thanh toán:</strong> 50% sau khi ký hợp đồng, 50% còn lại sau khi nghiệm thu bàn giao.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="bottom-grid">
+        <div class="payment-info">
+            <h4>THÔNG TIN THANH TOÁN CHUYỂN KHOẢN</h4>
+            <p><strong>Ngân hàng:</strong> VietinBank - CN ĐỒNG NAI</p>
+            <p><strong>STK:</strong> 100870874220 | <strong>CTK:</strong> NGUYEN MINH HIEU</p>
+            <img src="https://img.vietqr.io/image/ICB-100870874220-compact2.png?accountName=NGUYEN%20MINH%20HIEU" alt="Mã QR VietinBank Thanh Tâm Hiếu" class="qr-img">
+        </div>
+
+        <div class="signature-box">
+            <p><strong>ĐẠI DIỆN CƠ ĐIỆN LẠNH THANH TÂM HIẾU</strong></p>
+            <p><i>(Ký và ghi rõ họ tên)</i></p>
+            <div class="signature-space"></div>
+            <p><strong>NGUYỄN MINH HIẾU</strong></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('quote-date').valueAsDate = new Date();
+
+    function formatNumber(num) {
+        return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+    }
+
+    function calculate() {
+        let rows = document.querySelectorAll('#table-body tr');
+        let grandTotal = 0;
+
+        rows.forEach((row) => {
+            if (row.classList.contains('category-row')) return;
+            let qty = parseFloat(row.querySelector('.qty')?.value) || 0;
+            let matPrice = parseFloat(row.querySelector('.mat-price')?.value) || 0;
+            let laborPrice = parseFloat(row.querySelector('.labor-price')?.value) || 0;
+            
+            let rowTotal = (matPrice + laborPrice) * qty;
+            let amountCell = row.querySelector('.amount');
+            if (amountCell) amountCell.innerText = formatNumber(rowTotal);
+            
+            grandTotal += rowTotal;
+        });
+
+        document.getElementById('grand-total').innerText = formatNumber(grandTotal) + ' VNĐ';
+    }
+
+    function addRow() {
+        let tbody = document.getElementById('table-body');
+        let newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td><input type="text" placeholder="Nhập tên vật tư..."></td>
+            <td class="center"><input type="text" value="VN" class="center"></td>
+            <td class="center"><input type="text" value="Cái" class="center"></td>
+            <td class="center"><input type="number" value="1" class="center qty" oninput="calculate()"></td>
+            <td class="right"><input type="number" value="0" class="right mat-price" oninput="calculate()"></td>
+            <td class="right"><input type="number" value="0" class="right labor-price" oninput="calculate()"></td>
+            <td class="right bold amount">0</td>
+            <td class="center hide-on-preview"><button class="btn btn-remove" onclick="removeRow(this)">✕</button></td>
+        `;
+        tbody.appendChild(newRow);
+        calculate();
+    }
+
+    function addCategoryRow() {
+        let tbody = document.getElementById('table-body');
+        let newRow = document.createElement('tr');
+        newRow.className = "category-row";
+        newRow.innerHTML = `
+            <td colspan="7" style="padding: 2px;"><input type="text" value="TÊN NHÓM VẬT TƯ MỚI" style="text-align: center; font-weight: bold; color: var(--category-cyan); text-transform: uppercase;"></td>
+            <td class="center hide-on-preview"><button class="btn btn-remove" onclick="removeRow(this)">✕</button></td>
+        `;
+        tbody.appendChild(newRow);
+    }
+
+    function removeRow(btn) {
+        btn.parentNode.parentNode.remove();
+        calculate();
+    }
+
+    function togglePreview(enable) {
+        if (enable) document.body.classList.add('preview-mode');
+        else document.body.classList.remove('preview-mode');
+    }
+</script>
+
+</body>
+</html>
